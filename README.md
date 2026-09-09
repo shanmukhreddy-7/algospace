@@ -2,7 +2,7 @@
 
 Understand algorithms by watching them work.
 
-An interactive university Design and Analysis of Algorithms laboratory. Built with React 19, TypeScript, Tailwind CSS, accessible Radix/Shadcn primitives, SVG visualizations, and Recharts. Next.js App Router conventions are served by Vinext/Vite, with a Cloudflare Worker build for Sites hosting. The algorithm engine runs in the browser; no application backend or authentication is required.
+An interactive university Design and Analysis of Algorithms laboratory. Built with React 19, TypeScript, Tailwind CSS, accessible Radix/Shadcn primitives, SVG visualizations, and Recharts. The project supports native Next.js deployment on Vercel and a Vinext/Vite Cloudflare Worker build for Sites hosting. The algorithm engine runs in the browser; no application backend or authentication is required.
 
 ## Run locally
 

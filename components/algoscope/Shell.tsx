@@ -39,6 +39,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
             ["/learn", "Learn"],
             ["/playground", "Playground"],
             ["/compare", "Compare"],
+            ["/study-materials", "Study Materials"],
+            ["/creator", "Creator"],
           ].map(([href, label]) => (
             <Link
               key={href}
@@ -80,7 +82,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
           AlgoScope<span className="brand-dot">.</span>
         </span>
         <span>A laboratory for algorithmic thinking.</span>
-        <span>Design & Analysis of Algorithms</span>
+        <Link href="/creator">
+          Created by Shanmukh Reddy <ArrowUpRight size={14} />
+        </Link>
       </footer>
     </>
   );

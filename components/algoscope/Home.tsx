@@ -88,7 +88,7 @@ export function Home() {
             <div className="eyebrow kicker">
               <span /> THE ALGORITHM LEARNING LAB
             </div>
-            <h1>
+            <h1 tabIndex={-1}>
               Understand algorithms
               <br />
               by watching them <em>work.</em>

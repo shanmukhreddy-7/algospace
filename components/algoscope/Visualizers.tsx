@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useLayoutEffect } from "react";
 import type { Snapshot, TreeNode, Vertex } from "@/lib/engine/types";
 import {
   Table,
@@ -343,10 +343,236 @@ export function DataTable({
     </Table>
   );
 }
+function PlayingCards({
+  cards,
+  active,
+}: {
+  cards: number[];
+  active?: number[];
+}) {
+  const container = useRef<HTMLDivElement>(null);
+  const positions = useRef(new Map<number, DOMRect>());
+  useLayoutEffect(() => {
+    const elements = Array.from(
+      container.current?.querySelectorAll<HTMLElement>("[data-card]") ?? [],
+    );
+    const nextPositions = new Map<number, DOMRect>();
+    for (const element of elements) {
+      const id = Number(element.dataset.card),
+        rect = element.getBoundingClientRect();
+      nextPositions.set(id, rect);
+      const previous = positions.current.get(id);
+      if (
+        previous &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        const dx = previous.left - rect.left,
+          dy = previous.top - rect.top;
+        if (Math.abs(dx) + Math.abs(dy) > 1)
+          element.animate(
+            [{ translate: `${dx}px ${dy}px` }, { translate: "0px 0px" }],
+            { duration: 420, easing: "cubic-bezier(.22,1,.36,1)" },
+          );
+      }
+    }
+    positions.current = nextPositions;
+  }, [cards]);
+  return (
+    <div
+      ref={container}
+      className="playing-cards"
+      aria-label="Playing card deck"
+    >
+      {cards.map((card, i) => (
+        <div
+          key={card}
+          data-card={card}
+          className={`playing-card ${card % 4 === 1 || card % 4 === 2 ? "red" : ""} ${active?.includes(i) ? "card-active" : ""}`}
+        >
+          <span>{["A", "K", "Q", "J"][Math.floor(card / 4)]}</span>
+          <span>{["♠", "♥", "♦", "♣"][card % 4]}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+function TraversalState({ s, kind }: { s: Snapshot; kind: string }) {
+  const stack = kind === "dfs";
+  const frontier = s.frontier ?? [];
+  const history = s.traversalHistory ?? [];
+  const entries = stack ? [...history].reverse() : history;
+  const waiting = history.filter((entry) => entry.state === "waiting");
+  const nextEntry = stack ? waiting.at(-1) : waiting[0];
+  return (
+    <section
+      className="traversal-state"
+      aria-label={stack ? "DFS stack" : "BFS queue"}
+    >
+      <div className="traversal-heading">
+        <h3>{stack ? "Stack history" : "Queue history"}</h3>
+        <span className="mono">
+          {stack ? "LIFO · LAST IN, FIRST OUT" : "FIFO · FIRST IN, FIRST OUT"}
+        </span>
+        <strong>
+          {frontier.length} waiting · {history.length} entries
+        </strong>
+      </div>
+      <div
+        className={`traversal-container ${stack ? "traversal-stack" : "traversal-queue"}`}
+        aria-label={
+          stack
+            ? "Complete stack history, newest first"
+            : "Complete queue history, insertion order"
+        }
+      >
+        {entries.length ? (
+          entries.map((entry) => (
+            <div
+              className={`traversal-slot entry-${entry.state} ${entry.id === history.at(-1)?.id && ["push", "enqueue"].includes(s.type) ? "entry-added" : ""}`}
+              key={entry.id}
+            >
+              <span className="traversal-node">{entry.node}</span>
+              <small>
+                {entry.state === "active"
+                  ? "SCANNING NEIGHBORS"
+                  : entry.state === "processed"
+                    ? "PROCESSED"
+                    : entry.state === "skipped"
+                      ? "SKIPPED · already visited"
+                      : entry.id === nextEntry?.id
+                        ? stack
+                          ? "TOP · pop next"
+                          : "FRONT · dequeue next"
+                        : "WAITING"}
+                {entry.from ? ` · from ${entry.from}` : " · start"}
+              </small>
+            </div>
+          ))
+        ) : (
+          <p className="traversal-empty">
+            {stack ? "Stack is empty" : "Queue is empty"}
+          </p>
+        )}
+      </div>
+      <p className="traversal-hint">
+        {s.current ? (
+          <strong className="traversal-expanding">
+            {s.type === "skip" ? "Skipping" : "Expanding"} {s.current}
+          </strong>
+        ) : null}{" "}
+        {stack
+          ? "Push neighbors onto the stack; the last waiting entry is processed next. Already-visited entries are skipped."
+          : "Add neighbors at the rear; the first waiting entry is processed next."}{" "}
+        Processed entries stay visible as history.
+      </p>
+      <div className="traversal-visited">
+        <span className="eyebrow">VISITED ORDER</span>
+        <div aria-label="Visited nodes">
+          {s.visited?.length ? (
+            s.visited.map((node, index) => (
+              <span className="visited-node" key={node}>
+                <small>{index + 1}</small>
+                {node}
+              </span>
+            ))
+          ) : (
+            <span className="traversal-empty">No nodes visited yet</span>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 export function Visualizer({ s, kind }: { s: Snapshot; kind: string }) {
+  const invalidQueenSquares = new Set<string>();
+  if (s.boardKind === "queens" && s.board) {
+    const queens = s.board.flatMap((row, r) =>
+      row.flatMap((value, c) => (value ? [[r, c]] : [])),
+    );
+    s.board.forEach((row, r) =>
+      row.forEach((value, c) => {
+        if (
+          !value &&
+          queens.some(
+            ([qr, qc]) =>
+              qr === r || qc === c || Math.abs(qr - r) === Math.abs(qc - c),
+          )
+        )
+          invalidQueenSquares.add(`${r}:${c}`);
+      }),
+    );
+  }
+  const knightPosition =
+    s.boardKind === "knight" && s.board
+      ? (() => {
+          const values = s.board.flat();
+          const latest = Math.max(...values);
+          return latest > 0 ? values.indexOf(latest) : 0;
+        })()
+      : -1;
   return (
     <div className="visualizer-content">
-      {s.buckets ? (
+      {s.board ? (
+        <>
+          <div
+            className="board-visual"
+            style={{ "--board-size": s.board.length } as React.CSSProperties}
+            role="img"
+            aria-label={`${s.boardKind} board: ${s.board.map((row) => row.join(", ")).join("; ")}${knightPosition >= 0 ? `. Knight at row ${Math.floor(knightPosition / s.board.length) + 1}, column ${(knightPosition % s.board.length) + 1}` : ""}`}
+          >
+            {s.board.flatMap((row, r) =>
+              row.map((v, c) => (
+                <div
+                  key={`${r}:${c}`}
+                  title={
+                    s.boardKind === "queens"
+                      ? `Row ${r + 1}, column ${c + 1}: ${v ? "placed queen" : invalidQueenSquares.has(`${r}:${c}`) ? "invalid — attacked by a queen" : "not attacked by a placed queen"}`
+                      : undefined
+                  }
+                  className={`board-cell ${(r + c) % 2 ? "alternate" : ""} ${v ? "occupied" : ""} ${s.boardKind === "queens" ? "queen" : ""} ${invalidQueenSquares.has(`${r}:${c}`) ? "queen-invalid" : ""} ${s.boardKind === "puzzle" && !v ? "empty-tile" : ""} ${s.cell?.[0] === r && s.cell?.[1] === c ? "active-cell" : ""}`}
+                >
+                  {s.boardKind === "queens" ? (
+                    v ? (
+                      "♛"
+                    ) : invalidQueenSquares.has(`${r}:${c}`) ? (
+                      <span className="queen-threat" aria-hidden="true">
+                        ×
+                      </span>
+                    ) : (
+                      ""
+                    )
+                  ) : s.boardKind === "knight" ? (
+                    <>
+                      {knightPosition === r * s.board!.length + c && (
+                        <span className="knight-piece" aria-label="Knight">
+                          ♞
+                        </span>
+                      )}
+                      <span className="knight-move-number">{v || ""}</span>
+                    </>
+                  ) : (
+                    v || ""
+                  )}
+                </div>
+              )),
+            )}
+          </div>
+          <div className="board-legend">
+            {s.boardKind === "knight" && (
+              <span>♞ Current knight · numbers show move order</span>
+            )}
+            {s.boardKind === "queens" && (
+              <span className="queen-invalid-legend">
+                × Red · attacked / invalid square
+              </span>
+            )}
+            <span>Violet · current choice</span>
+            <span>Mint · placed / visited</span>
+          </div>
+        </>
+      ) : s.cards ? (
+        <PlayingCards cards={s.cards} active={s.active} />
+      ) : s.buckets ? (
         <div className="buckets">
           {s.buckets.map((bucket, i) => (
             <div
@@ -374,6 +600,9 @@ export function Visualizer({ s, kind }: { s: Snapshot; kind: string }) {
       ) : s.nodes ? (
         <>
           <GraphVisualizer s={s} />
+          {["bfs", "dfs"].includes(kind) && (
+            <TraversalState s={s} kind={kind} />
+          )}
           {s.distances && (
             <DataTable
               headers={["Vertex", "Distance", "Predecessor"]}
@@ -395,16 +624,19 @@ export function Visualizer({ s, kind }: { s: Snapshot; kind: string }) {
           <Table className="dp-table">
             <TableHeader>
               <TableRow>
-                <TableHead>i / C</TableHead>
+                <TableHead>{s.matrixLabels ? "from / to" : "i / C"}</TableHead>
                 {s.table[0].map((_, c) => (
-                  <TableHead key={c}>{c}</TableHead>
+                  <TableHead key={c}>{s.matrixLabels?.[c] ?? c}</TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody>
               {s.table.map((row, i) => (
                 <TableRow key={i}>
-                  <TableCell>{i === 0 ? "∅" : s.items?.[i - 1].name}</TableCell>
+                  <TableCell>
+                    {s.matrixLabels?.[i] ??
+                      (i === 0 ? "∅" : s.items?.[i - 1]?.name)}
+                  </TableCell>
                   {row.map((v, c) => (
                     <TableCell
                       key={c}
@@ -416,7 +648,7 @@ export function Visualizer({ s, kind }: { s: Snapshot; kind: string }) {
                             : ""
                       }
                     >
-                      {v}
+                      {Number.isFinite(v) ? v : "∞"}
                     </TableCell>
                   ))}
                 </TableRow>

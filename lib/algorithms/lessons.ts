@@ -73,3 +73,54 @@ export const lessons: Record<
     try: "Watch backtracking: when a value differs from the cell above, the current item was selected.",
   },
 };
+
+Object.assign(lessons, {
+  "all-pairs": {
+    concept:
+      "Floyd–Warshall improves a distance matrix by allowing one more intermediate vertex in each phase.",
+    invariant:
+      "After phase k, each cell is the shortest path using only intermediate vertices 0 through k.",
+    try: "Remove an edge. Watch indirect paths replace missing direct connections.",
+  },
+  traversal: {
+    concept:
+      "BFS expands a FIFO frontier by levels. DFS uses a LIFO work stack to follow deeper branches first.",
+    invariant:
+      "Each vertex is visited once. BFS keeps discovered vertices in a queue; DFS pops the most recently added pending entry and skips entries already visited.",
+    try: "Use the same start vertex in both traversals. Compare the order and the frontier.",
+  },
+  "eight-queens": {
+    concept:
+      "Backtracking builds a candidate one row at a time and undoes choices that cannot lead to a solution.",
+    invariant: "Every placed queen has a distinct row, column, and diagonal.",
+    try: "Pause at a conflict, then step backward to see why the candidate was rejected.",
+  },
+  "knights-tour": {
+    concept:
+      "A knight must visit every square exactly once. Warnsdorff ordering tries moves with few onward options first.",
+    invariant:
+      "Numbered squares form a legal path with no repeated square; backtracking removes a failed suffix.",
+    try: "Compare a 5×5 board with a larger board. Heuristic ordering helps but does not guarantee a quick solution.",
+  },
+  "travelling-salesman": {
+    concept:
+      "Branch and bound explores tours while retaining the cheapest complete trip found so far.",
+    invariant:
+      "With non-negative weights, partial cost cannot exceed the cost of any completion; branches no better than the incumbent can be pruned.",
+    try: "Add a cheap return edge. Does the best route change? Missing edges are never treated as shortcuts.",
+  },
+  "sliding-puzzle": {
+    concept:
+      "Best-first branch and bound (A*) prioritizes moves-so-far plus Manhattan distance. Parent pointers reconstruct a solution.",
+    invariant:
+      "Manhattan distance never overestimates remaining moves. The first goal removed from the frontier has minimum cost.",
+    try: "Increase scramble depth. Compare expanded search states to the length of the final solution.",
+  },
+  randomized: {
+    concept:
+      "Random choices can shuffle a deck, choose pivots, or decide search order. A seed lets you reproduce a run.",
+    invariant:
+      "Shuffling preserves every card; random search never rechecks an index; partitioning preserves all input values.",
+    try: "Try two seeds with the same input. Compare operation counts, then replay a seed to get the same trace.",
+  },
+});

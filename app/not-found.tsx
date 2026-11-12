@@ -4,7 +4,7 @@ export default function NotFound() {
     <main className="about-main">
       <div className="eyebrow">404 · MODULE NOT FOUND</div>
       <h1>This laboratory does not exist.</h1>
-      <p>Choose one of the ten modules in the curriculum.</p>
+      <p>Choose a module in the curriculum.</p>
       <Link className="button primary" href="/learn">
         Back to modules
       </Link>

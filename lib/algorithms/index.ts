@@ -1,4 +1,5 @@
 import { type Input, type Trace } from "../engine/types";
+import { advancedKinds, advancedTrace } from "./advanced";
 import { sortTrace, searchTrace } from "./sorting";
 import { graphTrace } from "./graphs";
 import { structureTrace } from "./structures";
@@ -52,7 +53,23 @@ export function parseArray(text: string) {
 }
 export function validateInput(i: Input, kind: string) {
   if (
+    ["shuffle", "random-quick", "random-search"].includes(kind) &&
+    (!Number.isInteger(i.n) || i.n < 0 || i.n > 4294967295)
+  )
+    throw new Error("Seed must be an integer from 0 to 4294967295.");
+  if (kind === "knight" && (!Number.isInteger(i.n) || i.n < 5 || i.n > 8))
+    throw new Error("Knight boards support sizes 5–8.");
+  if (kind === "puzzle" && (!Number.isInteger(i.n) || i.n < 1 || i.n > 16))
+    throw new Error("Use a scramble depth from 1 to 16.");
+  if (kind === "tsp" && (i.nodes.length < 2 || i.nodes.length > 7))
+    throw new Error(
+      "Exact TSP supports 2–7 vertices. Remove extra nodes before running.",
+    );
+
+  if (
     [
+      "random-quick",
+      "random-search",
       "merge",
       "quick",
       "linear",
@@ -69,7 +86,7 @@ export function validateInput(i: Input, kind: string) {
       "Binary Search requires sorted input. Choose the Sorted preset.",
     );
   if (
-    ["linear", "binary", "bst-search"].includes(kind) &&
+    ["linear", "binary", "random-search", "bst-search"].includes(kind) &&
     (!Number.isInteger(i.target) || Math.abs(i.target) > 999)
   )
     throw new Error("Target must be an integer between -999 and 999.");
@@ -115,10 +132,14 @@ export function validateInput(i: Input, kind: string) {
     if (new Set(i.items.map((x) => x.name)).size !== i.items.length)
       throw new Error("Give each item a unique name.");
   }
-  if (["dijkstra", "prim", "kruskal"].includes(kind)) {
+  if (
+    ["dijkstra", "prim", "kruskal", "floyd", "bfs", "dfs", "tsp"].includes(kind)
+  ) {
     if (i.nodes.length < 1 || i.nodes.length > 10)
       throw new Error("Add 1–10 graph nodes.");
     const ids = new Set(i.nodes.map((n) => n.id));
+    if (ids.size !== i.nodes.length)
+      throw new Error("Graph vertex IDs must be unique.");
     if (!ids.has(i.start) || !ids.has(i.destination))
       throw new Error("Select valid start and destination nodes.");
     if (
@@ -139,6 +160,7 @@ export function validateInput(i: Input, kind: string) {
 }
 export function execute(kind: string, i: Input): Trace {
   validateInput(i, kind);
+  if (advancedKinds.includes(kind)) return advancedTrace(kind, i);
   if (kind === "merge" || kind === "quick") return sortTrace(i.array, kind);
   if (kind === "linear" || kind === "binary")
     return searchTrace(i.array, i.target, kind === "binary");

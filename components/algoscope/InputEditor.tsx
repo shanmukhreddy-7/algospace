@@ -34,7 +34,15 @@ export function InputEditor({
     [weight, setWeight] = useState(4),
     [error, setError] = useState(""),
     [newValue, setNewValue] = useState("");
-  const isGraph = ["dijkstra", "prim", "kruskal"].includes(kind),
+  const isGraph = [
+      "dijkstra",
+      "prim",
+      "kruskal",
+      "floyd",
+      "bfs",
+      "dfs",
+      "tsp",
+    ].includes(kind),
     isItems = ["fractional", "knapsack"].includes(kind),
     isTree = [
       "bst-insert",
@@ -50,6 +58,47 @@ export function InputEditor({
     setInput(next);
     setError("");
   }
+  if (["queens", "knight", "puzzle", "shuffle"].includes(kind))
+    return (
+      <div className="input-editor">
+        <div className="field-row">
+          {kind === "queens" ? (
+            <p className="field-hint">
+              Eight queens · 8×8 board · one valid arrangement. Step through
+              rejected choices and backtracking.
+            </p>
+          ) : (
+            <label>
+              {kind === "knight"
+                ? "Board size (5–8)"
+                : kind === "puzzle"
+                  ? "Scramble moves (1–16)"
+                  : "Random seed"}
+              <input
+                type="number"
+                min={kind === "shuffle" ? 0 : kind === "knight" ? 5 : 1}
+                max={
+                  kind === "shuffle" ? 4294967295 : kind === "knight" ? 8 : 16
+                }
+                value={input.n}
+                onChange={(e) =>
+                  setInput({ ...input, n: Number(e.target.value) })
+                }
+              />
+            </label>
+          )}
+          <p className="field-hint">
+            {kind === "puzzle"
+              ? "A solvable 4×4 board. Search steps explore different branches; solution playback shows legal tile moves."
+              : kind === "knight"
+                ? "Top-left start. Warnsdorff ordering with backtracking; a search limit is reported explicitly."
+                : kind === "shuffle"
+                  ? "Shuffle a 16-card deck. Reuse the seed to replay the same choices."
+                  : ""}
+          </p>
+        </div>
+      </div>
+    );
   return (
     <div className="input-editor">
       {isGraph ? (
@@ -448,7 +497,9 @@ export function InputEditor({
                 placeholder="42, 17, 8, 31, 25"
               />
             </label>
-            {["linear", "binary", "bst-search"].includes(kind) && (
+            {["linear", "binary", "random-search", "bst-search"].includes(
+              kind,
+            ) && (
               <label>
                 Target
                 <input
@@ -461,6 +512,20 @@ export function InputEditor({
               </label>
             )}
           </div>
+          {["random-quick", "random-search"].includes(kind) && (
+            <label>
+              Random seed
+              <input
+                type="number"
+                min="0"
+                max="4294967295"
+                value={input.n}
+                onChange={(e) =>
+                  setInput({ ...input, n: Number(e.target.value) })
+                }
+              />
+            </label>
+          )}
           {isTree ? (
             <div className="field-row">
               <label>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 export const metadata: Metadata = {
-  title: "AlgoScope — The Algorithm Learning Lab",
+  title: "AlgoSpace — Visual Algorithm Lab",
   description:
     "Understand algorithms by watching them work. An interactive Design and Analysis of Algorithms laboratory.",
   icons: { icon: "/favicon.svg" },
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body>{children}</body>
     </html>
   );

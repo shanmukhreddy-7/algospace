@@ -2,11 +2,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
-import { Moon, Sun, Activity, ArrowUpRight } from "lucide-react";
-let fallbackDark = false;
+import { Moon, Sun, ArrowUpRight } from "lucide-react";
+import { Logo } from "./Logo";
+let fallbackDark = true;
 const readTheme = () => {
   try {
-    return localStorage.getItem("algoscope-theme") === "dark";
+    return localStorage.getItem("algospace-theme") !== "light";
   } catch {
     return fallbackDark;
   }
@@ -21,7 +22,7 @@ const subscribeTheme = (notify: () => void) => {
 };
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const dark = useSyncExternalStore(subscribeTheme, readTheme, () => false);
+  const dark = useSyncExternalStore(subscribeTheme, readTheme, () => true);
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
@@ -30,9 +31,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <header className="topbar">
         <Link className="wordmark" href="/">
           <span className="brand-icon">
-            <Activity size={21} />
+            <Logo />
           </span>
-          AlgoScope<span className="brand-dot">.</span>
+          AlgoSpace<span className="brand-dot">.</span>
         </Link>
         <nav aria-label="Main navigation">
           {[
@@ -40,7 +41,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
             ["/playground", "Playground"],
             ["/compare", "Compare"],
             ["/study-materials", "Study Materials"],
-            ["/creator", "Creator"],
           ].map(([href, label]) => (
             <Link
               key={href}
@@ -54,12 +54,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="nav-end">
           <button
             className="icon-button"
-            aria-label="Toggle dark theme"
+            aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
             onClick={() => {
               fallbackDark = !dark;
               try {
                 localStorage.setItem(
-                  "algoscope-theme",
+                  "algospace-theme",
                   !dark ? "dark" : "light",
                 );
               } catch {
@@ -79,11 +79,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {children}
       <footer>
         <span className="wordmark small">
-          AlgoScope<span className="brand-dot">.</span>
+          AlgoSpace<span className="brand-dot">.</span>
         </span>
         <span>A laboratory for algorithmic thinking.</span>
-        <Link href="/creator">
-          Created by Shanmukh Reddy <ArrowUpRight size={14} />
+        <Link href="/about">
+          How it works <ArrowUpRight size={14} />
         </Link>
       </footer>
     </>

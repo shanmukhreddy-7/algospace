@@ -7,6 +7,13 @@ export type TreeNode = {
   right?: TreeNode;
 };
 export type Item = { name: string; weight: number; value: number };
+export type TraversalEntry = {
+  id: number;
+  node: string;
+  from?: string;
+  edge?: number;
+  state: "waiting" | "active" | "processed" | "skipped";
+};
 export type Snapshot = {
   type: string;
   line: number;
@@ -37,6 +44,12 @@ export type Snapshot = {
   current?: string;
   distances?: Record<string, number>;
   predecessors?: Record<string, string>;
+  board?: number[][];
+  boardKind?: "queens" | "knight" | "puzzle";
+  cards?: number[];
+  matrixLabels?: string[];
+  frontier?: string[];
+  traversalHistory?: TraversalEntry[];
   table?: number[][];
   cell?: [number, number];
   sources?: [number, number][];

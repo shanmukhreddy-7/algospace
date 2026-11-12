@@ -40,8 +40,7 @@ export function Lab({
         module.algorithms[0] === "complexity" ? "merge" : module.algorithms[0],
         defaultInput,
       ),
-    ),
-    [ran, setRan] = useState(false);
+    );
   const beforeAdvance = useCallback(
     (index: number) => {
       if (
@@ -72,6 +71,8 @@ export function Lab({
     (selected = kind, override?: Input) => {
       try {
         const isArray = [
+          "random-quick",
+          "random-search",
           "merge",
           "quick",
           "linear",
@@ -105,7 +106,6 @@ export function Lab({
         setFeedback("");
         setAnswered([]);
         setError("");
-        setRan(true);
         try {
           localStorage.setItem("algoscope-last-algorithm", selected);
         } catch {
@@ -163,15 +163,19 @@ export function Lab({
     [nextType],
   );
   useEffect(() => {
+    if (kind === "complexity") return;
     const doc = document as Document & {
       modelContext?: {
-        registerTool: (tool: unknown, options: unknown) => void;
+        registerTool: (
+          tool: unknown,
+          options: unknown,
+        ) => void | Promise<unknown>;
       };
     };
     if (!doc.modelContext) return;
     const controller = new AbortController();
     try {
-      doc.modelContext.registerTool(
+      const registration = doc.modelContext.registerTool(
         {
           name: "set_execution_step",
           description:
@@ -203,11 +207,15 @@ export function Lab({
         },
         { signal: controller.signal },
       );
+      // Some browser implementations return a promise rejected on cleanup.
+      void Promise.resolve(registration).catch(() => {
+        /* Optional capability. */
+      });
     } catch {
       /* Optional browser capability. */
     }
     return () => controller.abort();
-  }, [trace, setIndex, setPlaying]);
+  }, [kind, trace, setIndex, setPlaying]);
   return (
     <Shell>
       <main className="lab-main">
@@ -223,7 +231,7 @@ export function Lab({
             <div className="eyebrow">
               {playground
                 ? "EXPERIMENT & OBSERVE"
-                : `MODULE ${String(modules.indexOf(module) + 1).padStart(2, "0")} · ${module.category}`}
+                : `MODULE ${String(modules.findIndex((m) => m.slug === module.slug) + 1).padStart(2, "0")} · ${module.category}`}
             </div>
             <h1>{playground ? "Algorithm Playground" : module.title}</h1>
             <p>
@@ -271,7 +279,7 @@ export function Lab({
                   : "Predict the next operation."}
               </span>
             </div>
-            <details className="input-details" open={!ran} onToggle={() => {}}>
+            <details className="input-details">
               <summary>
                 Configure input <span>Custom data & examples</span>
               </summary>
@@ -289,7 +297,15 @@ export function Lab({
                 }}
               />
               <div className="run-row">
-                <button className="button primary" onClick={() => run()}>
+                <button
+                  className="button primary"
+                  onClick={(event) => {
+                    if (run())
+                      event.currentTarget
+                        .closest("details")
+                        ?.removeAttribute("open");
+                  }}
+                >
                   <FlaskConical size={16} /> Run algorithm
                 </button>
                 <p>
@@ -336,6 +352,32 @@ export function Lab({
                   </div>
                   <div className="code-assumption">{trace.assumption}</div>
                 </div>
+              </div>
+              <div className="execution-metrics">
+                <span className="execution-live">
+                  <span className="status-dot" />
+                  {names[kind]}
+                </span>
+                <div className="execution-progress">
+                  <progress
+                    aria-label="Execution progress"
+                    value={p.index}
+                    max={Math.max(1, trace.steps.length - 1)}
+                  />
+                  <span>
+                    {Math.round(
+                      (p.index / Math.max(1, trace.steps.length - 1)) * 100,
+                    )}
+                    %
+                  </span>
+                </div>
+                {Object.entries(s.counts)
+                  .slice(0, 3)
+                  .map(([name, value]) => (
+                    <span className="execution-count" key={name}>
+                      <strong>{value}</strong> {name}
+                    </span>
+                  ))}
               </div>
               <PlaybackControls
                 p={p}

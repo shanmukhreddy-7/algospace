@@ -5,8 +5,8 @@ export default function Learn() {
     <Shell>
       <main className="home-main">
         <div className="page-heading">
-          <div className="eyebrow">THE CURRICULUM · 10 MODULES</div>
-          <h1>Build understanding, one step at a time.</h1>
+          <div className="eyebrow">THE ALGORITHM LIBRARY</div>
+          <h1>Your next discovery starts here.</h1>
           <p>
             Explore a concept, run your own input, and inspect the work behind
             the result.

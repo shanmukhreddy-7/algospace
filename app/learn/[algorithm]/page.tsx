@@ -9,5 +9,5 @@ export default async function AlgorithmPage({
   const { algorithm } = await params;
   const learningModule = modules.find((m) => m.slug === algorithm);
   if (!learningModule) notFound();
-  return <Lab module={learningModule} />;
+  return <Lab key={learningModule.slug} module={learningModule} />;
 }

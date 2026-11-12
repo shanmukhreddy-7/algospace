@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { modules } from "@/lib/algorithms/metadata";
 import { Shell } from "@/components/algoscope/Shell";
 export default function About() {
   return (
@@ -7,7 +8,7 @@ export default function About() {
         <div className="eyebrow">DESIGN & ANALYSIS OF ALGORITHMS</div>
         <h1>Make the invisible work visible.</h1>
         <p className="about-lead">
-          AlgoScope is an interactive learning laboratory for a university
+          AlgoSpace is an interactive learning laboratory for a university
           Design and Analysis of Algorithms project.
         </p>
         <section className="prose panel">
@@ -20,9 +21,10 @@ export default function About() {
           </p>
           <h3>Designed for experiments</h3>
           <p>
-            Change an input, predict a step, and compare the result. The ten
-            modules cover foundations, data structures, divide and conquer,
-            greedy methods, graph algorithms, and dynamic programming.
+            Change an input, predict a step, and compare the result. The {modules.length}
+            {" "}labs cover foundations, data structures, divide and conquer,
+            greedy methods, graphs, dynamic programming, backtracking,
+            branch and bound, and randomized algorithms.
           </p>
           <h3>Read the measurements carefully</h3>
           <p>

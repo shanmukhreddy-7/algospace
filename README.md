@@ -1,4 +1,4 @@
-# AlgoScope
+# AlgoSpace
 
 Understand algorithms by watching them work.
 
@@ -6,33 +6,35 @@ An interactive university Design and Analysis of Algorithms laboratory. Built wi
 
 ## Run locally
 
-Requires Node.js 22.13 or newer.
+Requires Node.js 22.13 or newer and npm. On Fedora/Linux, install dependencies from the lockfile; do this again after copying the project from Windows because native packages in `node_modules` are platform-specific.
 
 ```sh
-npm run install:ci
-npm run dev
+npm ci --include=dev --include=optional
+npm run dev:next
 ```
 
-The development server uses http://localhost:5173. For a production build:
+Open http://localhost:3000. These commands use native Next.js, matching the Vercel deployment. No environment variables, database, or hosting credentials are required for the learning app.
+
+To verify and build locally, stop the development server first:
 
 ```sh
-npm run typecheck
 npm test
 npm run lint
-npm run build
-npm start
+npm run build:next
+npm run typecheck
+npm run start:next
 ```
 
-If the Windows npm launcher is misconfigured, invoke its JavaScript entrypoint directly, for example:
+`start:next` serves the production build at http://localhost:3000. Type checking after building uses freshly generated Next.js route types.
 
-```powershell
-node "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js" run dev
-```
+The original `dev`, `build`, `start`, and `install:ci` scripts remain available for the older Vinext/Sites workflow; they are not the native Next.js commands. Vercel already selects native Next.js through `vercel.json`. Local setup does not deploy the app.
+
+When transferring between Windows and Linux, discard generated `.next` files before starting. Git may report CRLF/LF differences from the transfer; inspect them before normalizing so existing edits are preserved.
 
 ## Routes
 
 - `/`: compact introduction, live sorting preview, and curriculum
-- `/learn`: all ten fixed learning modules
+- `/learn`: all 17 learning modules
 - `/learn/[algorithm]`: individual labs; slugs are defined in `lib/algorithms/metadata.ts`
 - `/playground`: experiment with any implemented algorithm and custom input
 - `/compare`: Merge Sort vs Quick Sort, or Prim vs Kruskal, with shared input
@@ -76,7 +78,7 @@ Local storage holds theme preference and the last executed algorithm. Inputs sta
 
 `npm test` checks randomized sorting, stable duplicate handling, input immutability and snapshot isolation, searching, collision chains, stack/queue ordering, factorial, BST traversals, Dijkstra against Floyd–Warshall, MSTs against exhaustive spanning-tree enumeration, 0/1 Knapsack against brute force, Huffman prefix-freeness/round trips, and validation boundaries.
 
-TypeScript, application lint, production compilation, and HTTP rendering of all routes are checked separately. Automated browser interaction/visual QA has not been performed. The optional feature-detected `set_execution_step` WebMCP hook has not been exercised in a browser supporting that proposed API; it is not required for ordinary use.
+TypeScript, application lint, production compilation, and HTTP rendering are checked separately. Browser checks cover intro entry, catalog search and filtering, forward/backward playback across the 16 shared-player labs, timed card playback, custom randomized sorting input, and the complexity slider. The optional `set_execution_step` WebMCP hook was exercised on the eight-queen solution. Desktop and narrow browser-panel layouts were inspected; this is not comprehensive cross-browser or physical-device testing.
 
 ## Demonstration sequence
 
@@ -87,3 +89,15 @@ TypeScript, application lint, production compilation, and HTTP rendering of all 
 5. Run 0/1 Knapsack and follow reconstruction from the final DP cell.
 6. Encode BANANA and inspect why the resulting codes are prefix-free.
 7. Adjust n in the complexity lab and relate the observed counts to growth classes.
+
+## AlgoSpace redesign
+
+The interface defaults to dark with a light-theme option. A custom SVG logo and CSS 3D orbit introduce the site once per browser session. Reduced-motion preferences stop decorative motion and homepage autoplay; manual algorithm playback remains available. The homepage shows six featured labs; `/learn` searches and filters all 17 topics.
+
+New labs cover Floyd–Warshall, BFS/DFS, eight queens and backtracking, knight’s tour, TSP (also labelled TSSP), the 4×4 sliding puzzle, Fisher–Yates cards, randomized Quick Sort, and randomized search. Huffman and 0/1 Knapsack remain available.
+
+Search bounds keep interactive runs manageable: exact TSP uses 2–7 graph vertices; knight tours support 5–8 boards and 20,000 calls; sliding puzzles use 1–16 legal scramble moves and at most 5,000 expansions. The puzzle is the conventional 15-tile/one-blank 4×4 interpretation of “16-puzzle.” Knight and puzzle trace capture is capped separately from search work, and a search limit never claims a solution. Puzzle search snapshots may jump between candidate states; only the reconstructed solution sequence represents consecutive legal moves.
+
+New correctness checks cover shortest-path agreement, graph traversal, queen constraints, legal knight moves, exact TSP costs, legal puzzle solutions, seeded shuffling, randomized sorting/search, snapshot isolation, and input bounds. No deployment is performed as part of this local redesign.
+
+The creator page and its navigation links have been removed. Graph traversal labs display the persistent BFS queue or DFS work-stack history below the graph, with waiting/active/processed labels and a separate visited-order history. The active parent stays highlighted while its neighbors are added. DFS uses iterative LIFO traversal and skips stale entries on pop. Knight’s Tour displays a knight piece at the current end of the route, while preserving move numbers.
